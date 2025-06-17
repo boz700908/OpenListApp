@@ -29,7 +29,7 @@ jobs:
           flutter-version: '3.32.0'
       - run: cd ./packages/openlist
       - run: flutter pub get
-      - run: flutter build --release
+      - run: flutter run --release
 
       - name: Upload build
         uses: actions/upload-artifact@v4
