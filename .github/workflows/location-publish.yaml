@@ -34,4 +34,4 @@ jobs:
         id: pub_release
         uses: leancodepl/mobile-tools/.github/actions/pub-release@pub-release-v1
         with:
-          path: ./
+          path: ./packages/openlist
