@@ -1,9 +1,10 @@
 name: CI
 
 on:
+  workflow_dispatch:
   push:
     branches:
-      - master
+      - main
     tags:
       - '*'
   pull_request:
@@ -26,49 +27,24 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           flutter-version: '3.32.0'
-      - uses: finnp/create-file-action@master
-        env:
-          FILE_NAME: lib/common/config/ignoreConfig.dart
-          FILE_DATA: class NetConfig { static const CLIENT_ID = "${{ secrets.CLIENT_ID }}"; static const CLIENT_SECRET = "${{ secrets.CLIENT_SECRET }}";}
       - run: flutter pub get
-      - run: flutter build apk --release --target-platform=android-arm64 --no-shrink
+      - run: flutter build --release
 
-  apk:
-    name: Generate APK
-    if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Setup JDK
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'zulu'
-          java-version: 21
-      - uses: subosito/flutter-action@v1
-        with:
-          flutter-version: '3.32.0'
-      - uses: finnp/create-file-action@master
-        env:
-          FILE_NAME: lib/common/config/ignoreConfig.dart
-          FILE_DATA: class NetConfig { static const CLIENT_ID = "${{ secrets.CLIENT_ID }}"; static const CLIENT_SECRET = "${{ secrets.CLIENT_SECRET }}";}
-      - run: flutter pub get
-      - run: flutter build apk --release --target-platform=android-arm64 --no-shrink
-      - name: Upload APK
+      - name: Upload build
         uses: actions/upload-artifact@v4
         with:
-          name: apk
-          path: build/app/outputs/apk/release/app-release.apk
+          name: build
+          path: build/app/outputs/apk/release/*.*
   release:
-    name: Release APK
-    needs: apk
+    name: Release
+    needs: build
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
-      - name: Download APK from build
+      - name: Download from build
         uses: actions/download-artifact@v4
         with:
-          name: apk
+          name: build
       - name: Display structure of downloaded files
         run: ls -R
 
@@ -87,6 +63,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./app-release.apk
+          asset_path: ./app-*.*
           asset_name: app-release.apk
           asset_content_type: application/zip
