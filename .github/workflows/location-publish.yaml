@@ -1,6 +1,7 @@
 name: location publish
 
 on:
+  workflow_dispatch:
   push:
     tags: ["location-v*"]
 
